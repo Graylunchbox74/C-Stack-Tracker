@@ -8,6 +8,8 @@
 #include <queue>
 #include <sstream>
 
+//g++ StackWatcher.cpp -lncurses
+
 using namespace std;
 
 //global variables
