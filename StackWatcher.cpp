@@ -97,13 +97,7 @@ class StackWatcher{
     public:
     stack<tuple<Args...>> functionStack;
 
-    StackWatcher(Args... t){
-        functionStack = createStack(t...);
-        printMenu();
-    }
-
     void AddStack(Args... input){
-        functionStack = createStack(input...);
         functionStack.push(createTupleObject(input...));
         printMenu();
     }
@@ -173,22 +167,13 @@ class StackWatcher{
 template<class... Args>
 void AddToStack(Args... t) 
 {
-    StackWatcher<Args...> currentStack(t...);
-   // currentStack.AddStack(t...);
-//    StackWatcher<int,int,int>::AddStack(t...);
+    StackWatcher<Args...> currentStack;
+    currentStack.AddStack(t...);
 }
 
 int main(int argc, char ** argv){
-    AddToStack(1,2,3,"hello world", 4.5f, true);
-    // int x = 0;
-    // int y = 2;
-    // string z = "hello world";
-    // auto p = createStack(x,y,z);
-    // p.push(createTupleObject(x,y,z));
-    // while(!p.empty()){
-    //     print(p.top());
-    //     p.pop();
-    // }
+    AddToStack(1,2,3,"hello world", 4.5f, true, "Skylar Hagen", 90, 379);
+
    endwin();
     return 0;
 }
