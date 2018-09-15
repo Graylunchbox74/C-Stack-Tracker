@@ -164,15 +164,8 @@ class StackWatcher{
     }
 };
 
-template<class... Args>
-void AddToStack(Args... t) 
-{
-    StackWatcher<Args...> currentStack;
-    currentStack.AddStack(t...);
-}
-
 int main(int argc, char ** argv){
-    AddToStack(1,2,3,"hello world", 4.5f, true, "Skylar Hagen", 90, 379);
+    AddToStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 379);
 
    endwin();
     return 0;
