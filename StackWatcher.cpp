@@ -38,7 +38,7 @@ void print(const tuple<Args...>& t)
 {
     cout << "(";
     TuplePrinter<decltype(t), sizeof...(Args)>::print(t);
-    cout << ")\n";
+    cout << ")";
 }
 
 
@@ -90,77 +90,94 @@ int setup(){
     init_pair(7, COLOR_BLACK, COLOR_CYAN);
 }
 
-void printMenu(){
-    stringstream ss;
-    auto old_buf = cout.rdbuf(ss.rdbuf());
-    setup();
-    int maxX, maxY;
+template<class... Args>
+class StackWatcher{
+    public:
+    stack<tuple<Args...>> functionStack;
 
-    getmaxyx(stdscr,maxY,maxX);
-
-    attron(COLOR_PAIR(4));
-        mvprintw(0,0,"Program Output:");
-        mvprintw(0,maxX/2+2,"StackTracker:");
-    attroff(COLOR_PAIR(4));
-
-    attron(COLOR_PAIR(1));
-        for(int i = 0; i < maxX; i++){
-            mvprintw(2,i,"-");
-        }
-
-        for(int i = 0; i < maxY; i++){
-            mvprintw(i,maxX/2,"|");
-        }
-
-        mvprintw(2,maxX/2,"+");
-    attroff(COLOR_PAIR(1));
-
-    currentX = maxX / 2;
-    currentY = maxY - (maxY/10);
-
-    auto testStack = createStack(1,2,"hello world");
-    testStack.push(createTupleObject(1,2,"test"));
-    testStack.push(createTupleObject(1,2,"test"));
-    testStack.push(createTupleObject(1,2,"test"));
-    testStack.push(createTupleObject(1,2,"testiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiin"));
-
-
-    while(!testStack.empty()){
-        for(int i = maxX/2 + 1; i < maxX; i++){
-            mvprintw(currentY,i,"-");
-        }
-        print(testStack.top());
-
-
-        queue<string> eachLine;
-        int nextStart = 0;
-        while((ss.str().size() - nextStart) > maxX/2 - 1){
-            eachLine.push(ss.str().substr(0,maxX/2 - 1));
-            nextStart += maxX/2;
-        }
-        eachLine.push(ss.str().substr(nextStart,ss.str().size()));
-   
-        for(int i = 1; !eachLine.empty() && i <= (maxY/10); i++) {
-            mvprintw(currentY+i,maxX/2+1,"%s",eachLine.front().c_str());
-            eachLine.pop();
-        }
-   
-        ss.str("");
-
-        testStack.pop();
-        currentY = currentY - (maxY/10);
+    StackWatcher(Args... t){
+        functionStack = createStack(t...);
+        printMenu();
     }
 
-    cout.rdbuf(old_buf);
+    void AddStack(Args... input){
+        functionStack = createStack(input...);
+        functionStack.push(createTupleObject(input...));
+        printMenu();
+    }
 
-    while(inputQueue.empty()){ input(); }
+    void printMenu(){
+        stringstream ss;
+        auto old_buf = cout.rdbuf(ss.rdbuf());
+        setup();
+        int maxX, maxY;
 
-    return;    
+        getmaxyx(stdscr,maxY,maxX);
+
+        attron(COLOR_PAIR(4));
+            mvprintw(0,0,"Program Output:");
+            mvprintw(0,maxX/2+2,"StackTracker:");
+        attroff(COLOR_PAIR(4));
+
+        attron(COLOR_PAIR(1));
+            for(int i = 0; i < maxX; i++){
+                mvprintw(2,i,"-");
+            }
+
+            for(int i = 0; i < maxY; i++){
+                mvprintw(i,maxX/2,"|");
+            }
+
+            mvprintw(2,maxX/2,"+");
+        attroff(COLOR_PAIR(1));
+
+        currentX = maxX / 2;
+        currentY = maxY - (maxY/10);
+
+        while(!functionStack.empty()){
+            for(int i = maxX/2 + 1; i < maxX; i++){
+                mvprintw(currentY,i,"-");
+            }
+            print(functionStack.top());
+
+
+            queue<string> eachLine;
+            int nextStart = 0;
+            while((ss.str().size() - nextStart) > maxX/2 - 1){
+                eachLine.push(ss.str().substr(0,maxX/2 - 1));
+                nextStart += maxX/2;
+            }
+            eachLine.push(ss.str().substr(nextStart,ss.str().size()));
+    
+            for(int i = 1; !eachLine.empty() && i < (maxY/10); i++) {
+                mvprintw(currentY+i,maxX/2+1,"%s",eachLine.front().c_str());
+                eachLine.pop();
+            }
+    
+            ss.str("");
+
+            functionStack.pop();
+            currentY = currentY - (maxY/10);
+        }
+
+        cout.rdbuf(old_buf);
+
+        while(inputQueue.empty()){ input(); }
+
+        return;    
+    }
+};
+
+template<class... Args>
+void AddToStack(Args... t) 
+{
+    StackWatcher<Args...> currentStack(t...);
+   // currentStack.AddStack(t...);
+//    StackWatcher<int,int,int>::AddStack(t...);
 }
 
 int main(int argc, char ** argv){
-
-    printMenu();
+    AddToStack(1,2,3,"hello world", 4.5f, true);
     // int x = 0;
     // int y = 2;
     // string z = "hello world";
