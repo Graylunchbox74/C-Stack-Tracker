@@ -7,6 +7,7 @@
 #include <stack>
 #include <queue>
 #include <sstream>
+#include <deque>
 
 //g++ StackWatcher.cpp -lncurses
 
@@ -15,7 +16,6 @@ using namespace std;
 //global variables
 queue<int> inputQueue;
 int currentX, currentY;
-string currentStack;
 
 
 template<class Tuple, size_t N>
@@ -83,58 +83,89 @@ int setup(){
     noecho();
     keypad(stdscr, TRUE);
     start_color();
-    init_pair(1, COLOR_GREEN, COLOR_BLACK); //Border
-    init_pair(2, COLOR_WHITE, COLOR_BLACK); //normal color
-    init_pair(3, COLOR_RED, COLOR_BLACK); //list
-    init_pair(4, COLOR_YELLOW, COLOR_BLACK); //label
-    init_pair(5, COLOR_CYAN, COLOR_BLACK); // instructions
-    init_pair(6, COLOR_BLACK, COLOR_YELLOW); //normal color
-    init_pair(7, COLOR_BLACK, COLOR_CYAN);
+    init_pair(1, COLOR_GREEN, COLOR_BLACK);
+    init_pair(2, COLOR_WHITE, COLOR_BLACK);
+    init_pair(3, COLOR_RED, COLOR_BLACK);
+    init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(5, COLOR_CYAN, COLOR_BLACK);
+    init_pair(6, COLOR_BLUE, COLOR_BLACK);
+    init_pair(7, COLOR_MAGENTA, COLOR_BLACK);
 }
+
+void menuSetup(){
+    int maxX, maxY;
+    getmaxyx(stdscr,maxY,maxX);
+    attron(COLOR_PAIR(4));
+        mvprintw(0,0,"Program Output:");
+        mvprintw(0,maxX/2+2,"StackTracker:");
+    attroff(COLOR_PAIR(4));
+    attron(COLOR_PAIR(1));
+        for(int i = 0; i < maxX; i++){
+            mvprintw(2,i,"-");
+        }
+        for(int i = 0; i < maxY; i++){
+            mvprintw(i,maxX/2,"|");
+        }
+        mvprintw(2,maxX/2,"+");
+    attroff(COLOR_PAIR(1));
+}
+
 
 template<class... Args>
 class StackWatcher{
     public:
-    stack<tuple<Args...>> functionStack;
+    deque<tuple<Args...>> functionStack;
+    int colorCounter;
+
+    StackWatcher(){
+        setup();
+        menuSetup();
+    }
+
+    ~StackWatcher(){
+           endwin();
+    }
 
     void AddStack(Args... input){
-        functionStack.push(createTupleObject(input...));
+        functionStack.push_back(createTupleObject(input...));
+        printMenu();
+    }
+
+    void RemoveFromStack(){
+        if(!functionStack.empty())
+            functionStack.pop_back();
         printMenu();
     }
 
     void printMenu(){
+        colorCounter = 0;
         stringstream ss;
+        auto functionCopy = functionStack;
         auto old_buf = cout.rdbuf(ss.rdbuf());
-        setup();
         int maxX, maxY;
 
         getmaxyx(stdscr,maxY,maxX);
-
-        attron(COLOR_PAIR(4));
-            mvprintw(0,0,"Program Output:");
-            mvprintw(0,maxX/2+2,"StackTracker:");
-        attroff(COLOR_PAIR(4));
-
-        attron(COLOR_PAIR(1));
-            for(int i = 0; i < maxX; i++){
-                mvprintw(2,i,"-");
+        for(int i = 3; i < maxY; i++){
+            for(int x = maxX/2 + 1; x < maxX; x++){
+                mvprintw(i,x," ");
             }
-
-            for(int i = 0; i < maxY; i++){
-                mvprintw(i,maxX/2,"|");
-            }
-
-            mvprintw(2,maxX/2,"+");
-        attroff(COLOR_PAIR(1));
+        }
 
         currentX = maxX / 2;
         currentY = maxY - (maxY/10);
 
-        while(!functionStack.empty()){
+        while(functionCopy.size() > 10){
+            colorCounter = (colorCounter + 1) % 7 + 1;
+            functionCopy.pop_front();
+        }
+
+        while(!functionCopy.empty()){
+            colorCounter = (colorCounter + 1) % 7 + 1;
+            attron(COLOR_PAIR(colorCounter));
             for(int i = maxX/2 + 1; i < maxX; i++){
                 mvprintw(currentY,i,"-");
             }
-            print(functionStack.top());
+            print(functionCopy.front());
 
 
             queue<string> eachLine;
@@ -152,28 +183,61 @@ class StackWatcher{
     
             ss.str("");
 
-            functionStack.pop();
+            functionCopy.pop_front();
             currentY = currentY - (maxY/10);
+            attroff(COLOR_PAIR(colorCounter));
+
         }
 
         cout.rdbuf(old_buf);
 
         while(inputQueue.empty()){ input(); }
-
+        inputQueue.pop();
         return;    
     }
 };
 
 template<class... Args>
-void AddToStack(Args... t) 
+StackWatcher<Args...> AddToStack(Args... t) 
 {
     StackWatcher<Args...> currentStack;
     currentStack.AddStack(t...);
+    return currentStack;
 }
 
-int main(int argc, char ** argv){
-    AddToStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 379);
+// global var: bool first;
+// if(first)
+//     auto x = AddToStack();
+// else
+//     x.AddStack();
 
-   endwin();
+
+
+int main(int argc, char ** argv){
+    auto x = AddToStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 1);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 2);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 3);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 4);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 5);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 6);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 7);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 8);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 9);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 10);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 11);
+    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 11);
+    
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
+    x.RemoveFromStack();
     return 0;
 }
