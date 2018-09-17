@@ -71,7 +71,7 @@ void input(){
     int x;
     timeout(2);
     x = getch();
-    if(x != -1){
+    if(x != -1 && x != KEY_RESIZE){
         inputQueue.push(x);
     }
 }
@@ -116,10 +116,12 @@ class StackWatcher{
     public:
     deque<tuple<Args...>> functionStack;
     int colorCounter;
+    int functionCalls;
 
     StackWatcher(){
         setup();
         menuSetup();
+        functionCalls = 0;
     }
 
     ~StackWatcher(){
@@ -127,6 +129,7 @@ class StackWatcher{
     }
 
     void AddStack(Args... input){
+        functionCalls++;
         functionStack.push_back(createTupleObject(input...));
         printMenu();
     }
@@ -138,6 +141,7 @@ class StackWatcher{
     }
 
     void printMenu(){
+        menuSetup();
         colorCounter = 0;
         stringstream ss;
         auto functionCopy = functionStack;
@@ -150,6 +154,8 @@ class StackWatcher{
                 mvprintw(i,x," ");
             }
         }
+
+        mvprintw(0,maxX/2 + 2 + 14, "function calls: %d", functionCalls);
 
         currentX = maxX / 2;
         currentY = maxY - (maxY/10);
@@ -211,33 +217,22 @@ StackWatcher<Args...> AddToStack(Args... t)
 // else
 //     x.AddStack();
 
+StackWatcher<int> x;  
+int factorial(int n){  
+    x.AddStack(n);
 
+    if(n == 1){
+        x.RemoveFromStack();
+        return 1;
+    }
+
+    int p = n * factorial(n-1);
+    p = p + factorial(n/2);
+    x.RemoveFromStack();
+    return p;
+}
 
 int main(int argc, char ** argv){
-    auto x = AddToStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 1);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 2);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 3);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 4);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 5);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 6);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 7);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 8);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 9);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 10);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 11);
-    x.AddStack(1,2,3,"hello world", 4.5f, true, "asdf", 90, 11);
-    
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
-    x.RemoveFromStack();
+    factorial(10);
     return 0;
 }
