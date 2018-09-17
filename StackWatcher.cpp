@@ -90,6 +90,16 @@ int setup(){
     init_pair(5, COLOR_CYAN, COLOR_BLACK);
     init_pair(6, COLOR_BLUE, COLOR_BLACK);
     init_pair(7, COLOR_MAGENTA, COLOR_BLACK);
+
+    init_pair(8, COLOR_BLACK, COLOR_BLACK);
+    init_pair(9, COLOR_BLACK, COLOR_MAGENTA);
+    init_pair(10, COLOR_BLACK, COLOR_RED);
+    init_pair(11, COLOR_BLACK, COLOR_GREEN);
+    init_pair(12, COLOR_BLACK, COLOR_CYAN);
+    init_pair(13, COLOR_BLACK, COLOR_WHITE);
+    init_pair(14, COLOR_BLACK, COLOR_BLUE);
+    init_pair(15, COLOR_BLACK, COLOR_YELLOW);
+
 }
 
 void menuSetup(){
@@ -211,12 +221,6 @@ StackWatcher<Args...> AddToStack(Args... t)
     return currentStack;
 }
 
-// global var: bool first;
-// if(first)
-//     auto x = AddToStack();
-// else
-//     x.AddStack();
-
 StackWatcher<int> x;  
 int factorial(int n){  
     x.AddStack(n);
@@ -227,12 +231,94 @@ int factorial(int n){
     }
 
     int p = n * factorial(n-1);
-    p = p + factorial(n/2);
     x.RemoveFromStack();
     return p;
 }
 
 int main(int argc, char ** argv){
-    factorial(10);
+    factorial(20);
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+// void colorBomb(){
+//     setup();
+//     int maxX, maxY;
+//     getmaxyx(stdscr,maxY,maxX);
+//     int c = 0;
+
+//     while(inputQueue.empty()){
+//         input();
+//         c = (c + 1) % 8 + 8;
+//         attron(COLOR_PAIR(c));
+//         for(int i = 0; i < maxY; i++){
+//             for(int x = 0; x < maxX; x++){
+//                 mvprintw(i,x," ");
+//             }
+//         }
+//         attroff(COLOR_PAIR(c));
+//     }
+// }
+
+
+// void staticColor(){
+//     setup();
+//     int maxX, maxY;
+//     getmaxyx(stdscr,maxY,maxX);
+//     int c = 0;
+//     int thisY, thisX;
+//     while(inputQueue.empty()){
+//         input();
+//         c = (c + 1) % 8 + 8;
+//         attron(COLOR_PAIR(c));
+//         for(int x = 0; x < rand() % 100; x++){
+//             thisY = rand() % maxY;
+//             thisX = rand() % maxX;
+//             mvprintw(thisY, thisX, " ");
+//         }
+//         attroff(COLOR_PAIR(c));
+//     }
+// }
+
+// void textColorBomb(){
+//     setup();
+//     int maxX, maxY;
+//     getmaxyx(stdscr,maxY,maxX);
+//     int c = 0;
+//     int randomNum;
+//     int currentY = 0, currentX = 0;
+
+//     while(inputQueue.empty()){
+//         input();
+//         c = (c + 1) % 8;
+        
+//         if(c == 0)
+//             c++;
+        
+//         attron(COLOR_PAIR(c));
+        
+//         if(currentX == maxX){
+//             currentX = 0;
+//             currentY++;
+//         }
+        
+//         if(currentY == maxY){
+//             currentY = 0;
+//         }
+
+//         randomNum = rand() % 10;
+//         mvprintw(currentY, currentX, "%d", randomNum);
+//         attroff(COLOR_PAIR(c));
+
+//         currentX++;
+//     }
+// }
