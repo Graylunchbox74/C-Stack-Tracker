@@ -1,23 +1,17 @@
 #include "StackWatcher.hpp"
-Hello WorldHello WorldnHello World\nHello Worldo
-Hello Worldside
+StackWatcher<int , char  > x;
 
-
-StackWatcher<int , char , float , string  > x;
-void function (int a, char b, float c, string d) {
-x.AddStack(a , b , c , d  );
-    if (a == 0)
-    {
-        return 0;
+x.AddStack();
+int factorial(int n, char c){  
+    if(n == 1){
+        return 1;
     }
 
-    return 1;
+    int p = n * factorial(n-1,c+1);
+    return p;
 }
 
+int main() {
+    factorial(10,'a');
 
-int second_function (int n) {
-    if ( nHello  ) {
-        return;
-    }
-    return;
 }

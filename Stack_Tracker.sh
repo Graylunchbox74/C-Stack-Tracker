@@ -29,7 +29,7 @@ STACKVAR="x"
 # modify all functions to add to stack
 for current_function in $FUNCTIONS; do
     echo "Current Function Name: $current_function"
-    FUNCTIONLINE="$( cat $NEWFILENAME | egrep -n ".*\s${current_function}\ .*{.*"  | awk -F: '{print $1}' )"
+    FUNCTIONLINE="$( cat $USERFILE | egrep -n ".*\s${current_function}.*{.*"| awk -F: '{print $1}' )"
     echo -e "\t Function found at line: $FUNCTIONLINE"
     # find the parameter datatypes from FUNCTIONLINE
     DATATYPES=$(cat $NEWFILENAME | egrep -n ".*\s${current_function}.*{.*"  | awk -F '\\(' '{print $2}' | awk -F '\\)' '{print $1}' | 
@@ -55,5 +55,24 @@ for current_function in $FUNCTIONS; do
     LINESINFILE="$(  wc -l $USERFILE | awk '{print $1}'  )"
     # echo $(( $LINESINFILE - $FUNCTIONLINE + 2))
     ENDOFFUNCTIONLINE="$( tail -n $(( $LINESINFILE - $FUNCTIONLINE + 2)) $USERFILE | egrep -n ".*[a-zA-Z]+\s[a-zA-Z]+.*{.*" | awk -F: '{print $1}' )"
-    
+    ENDOFFUNCTIONLINE=$(( $ENDOFFUNCTIONLINE + $FUNCTIONLINE - 1 ))
+    HASFOUND=0
+    CURRENTLINE=$(( $ENDOFFUNCTIONLINE ))
+    while [ "$HASFOUND" -eq 0 ]; do
+        CURRENTLINE=$(( $CURRENTLINE - 1 ))
+        TMP="$(sed "$CURRENTLINE q;d" $USERFILE | grep '}')"
+        if [ ! -z "$TMP" ]; then 
+            HASFOUND=1
+        fi
+    done
+    CURRENTLINE=$(( $CURRENTLINE + 3 ))
+    while [ "$CURRENTLINE" -gt "$FUNCTIONLINE" ]; do
+        TMP="$(sed "$CURRENTLINE q;d" $NEWFILENAME | grep 'return' )"
+        if [ -n "$TMP" ]; then 
+                sed -i '' ''"$CURRENTLINE"' i\
+                '"$STACKVAR"'.RemoveFromStack();\
+                ' $NEWFILENAME;
+        fi
+        CURRENTLINE=$(( $CURRENTLINE - 1 ))
+    done
 done
