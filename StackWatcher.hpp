@@ -223,19 +223,4 @@ StackWatcher<Args...> AddToStack(Args... t)
     currentStack.AddStack(t...);
     return currentStack;
 }
-
-StackWatcher<int, char> x;  
-int factorial(int n, char c){  
-    x.AddStack(n,c);
-
-    if(n == 1){
-        x.RemoveFromStack();
-        return 1;
-    }
-
-    int p = n * factorial(n-1,c+1);
-    x.RemoveFromStack();
-    return p;
-}
-
 #endif

@@ -37,25 +37,28 @@ for current_function in $FUNCTIONS; do
     DT="$( echo "${DATATYPES::-1}" | tr '\r\n' ' ' )"
     echo -e "\t Datatypes sent to function: $DT"
 
-    sed -i '' ''"$FUNCTIONLINE"' i\
+    sed -i '' ''"$((FUNCTIONLINE + 1))"' i\
     StackWatcher<'"$DT"'> '"$STACKVAR"';\
     ' $NEWFILENAME;
 
     #find the variable names so we can add them to the stack
-    VARNAMES=$(cat $NEWFILENAME | egrep -n ".*\s${current_function}\ .*{.*"  | awk -F '\\(' '{print $2}' | awk -F '\\)' '{print $1}' | 
+    VARNAMES=$(cat $NEWFILENAME | egrep -n ".*\s${current_function}.*{.*"  | awk -F '\\(' '{print $2}' | awk -F '\\)' '{print $1}' | 
         awk -F, '{for(i=1; i<=NF; i++) {print $i}}' | sed "s/^[ \t]*//" | awk '{print $2,","}')
     VN="$( echo "${VARNAMES::-1}" | tr '\r\n' ' ' )"
     echo -e "\t Variable Names of function: $VN"
 
 
-    sed -i '' ''"$(($FUNCTIONLINE+2))"' i\
+    sed -i '' ''"$(($FUNCTIONLINE+3))"' i\
     '"$STACKVAR"'.AddStack('"$VN"');\
     ' $NEWFILENAME;
 
     LINESINFILE="$(  wc -l $USERFILE | awk '{print $1}'  )"
     # echo $(( $LINESINFILE - $FUNCTIONLINE + 2))
-    ENDOFFUNCTIONLINE="$( tail -n $(( $LINESINFILE - $FUNCTIONLINE + 2)) $USERFILE | egrep -n ".*[a-zA-Z]+\s[a-zA-Z]+.*{.*" | awk -F: '{print $1}' )"
+    ENDOFFUNCTIONLINES="$( tail -n $(( $LINESINFILE - $FUNCTIONLINE + 1)) $USERFILE | egrep -n ".*[a-zA-Z]+\s[a-zA-Z]+.*{.*" | tr -d '[:space:]' | awk -F: '{print $1}' )"
+    ENDOFFUNCTIONLINE="$(echo -e "${ENDOFFUNCTIONLINES}" | tr -d '[:space:]')"
+    FUNCTIONLINE="$(echo -e "${FUNCTIONLINE}" | tr -d '[:space:]')"
     ENDOFFUNCTIONLINE=$(( $ENDOFFUNCTIONLINE + $FUNCTIONLINE - 1 ))
+
     HASFOUND=0
     CURRENTLINE=$(( $ENDOFFUNCTIONLINE ))
     while [ "$HASFOUND" -eq 0 ]; do
@@ -67,12 +70,15 @@ for current_function in $FUNCTIONS; do
     done
     CURRENTLINE=$(( $CURRENTLINE + 3 ))
     while [ "$CURRENTLINE" -gt "$FUNCTIONLINE" ]; do
+        CURRENTLINE=$(( $CURRENTLINE - 1 ))
         TMP="$(sed "$CURRENTLINE q;d" $NEWFILENAME | grep 'return' )"
         if [ -n "$TMP" ]; then 
                 sed -i '' ''"$CURRENTLINE"' i\
                 '"$STACKVAR"'.RemoveFromStack();\
                 ' $NEWFILENAME;
         fi
-        CURRENTLINE=$(( $CURRENTLINE - 1 ))
     done
 done
+
+g++ $NEWFILENAME -lncurses -std=c++11 -o stack_tracker;
+rm $NEWFILENAME

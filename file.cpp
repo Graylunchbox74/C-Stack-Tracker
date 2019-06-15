@@ -1,3 +1,5 @@
+#include <vector>
+#include <iostream>
 
 int factorial(int n, char c){  
     if(n == 1){
@@ -10,5 +12,4 @@ int factorial(int n, char c){
 
 int main() {
     factorial(10,'a');
-
 }
