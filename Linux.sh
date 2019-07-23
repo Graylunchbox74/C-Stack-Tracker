@@ -19,9 +19,7 @@ NEWFILENAME="$( echo "$USERFILE" | awk -F. '{print $1}' )StackWatcher.cpp"
 echo $NEWFILENAME
 cp $USERFILE $NEWFILENAME
 # add to the top of the cpp file the header to include our cpp lib
-sed -i '' '1i\
-#include "StackWatcher.hpp"\
-' $NEWFILENAME;
+sed -i '1 i #include "StackWatcher.hpp"\' $NEWFILENAME;
 
 echo "Adding function structures..."
 
@@ -37,9 +35,7 @@ for current_function in $FUNCTIONS; do
     DT="$( echo "${DATATYPES::-1}" | tr '\r\n' ' ' )"
     echo -e "\t Datatypes sent to function: $DT"
 
-    sed -i '' ''"$((FUNCTIONLINE + 1))"' i\
-    StackWatcher<'"$DT"'> '"$STACKVAR"';\
-    ' $NEWFILENAME;
+    sed -i "$((FUNCTIONLINE))"' i StackWatcher<'"$DT"'> '"$STACKVAR"';' $NEWFILENAME;
 
     #find the variable names so we can add them to the stack
     VARNAMES=$(cat $NEWFILENAME | egrep -n ".*\s${current_function}.*{.*"  | awk -F '\\(' '{print $2}' | awk -F '\\)' '{print $1}' | 
@@ -47,11 +43,8 @@ for current_function in $FUNCTIONS; do
     VN="$( echo "${VARNAMES::-1}" | tr '\r\n' ' ' )"
     echo -e "\t Variable Names of function: $VN"
 
-
-    sed -i '' ''"$(($FUNCTIONLINE+3))"' i\
-    '"$STACKVAR"'.AddStack('"$VN"');\
-    ' $NEWFILENAME;
-
+    sed -i "$(($FUNCTIONLINE+3))"' i'" $STACKVAR"'.AddStack\('"$VN"'\);' $NEWFILENAME;
+    
     LINESINFILE="$(  wc -l $USERFILE | awk '{print $1}'  )"
     # echo $(( $LINESINFILE - $FUNCTIONLINE + 2))
     ENDOFFUNCTIONLINES="$( tail -n $(( $LINESINFILE - $FUNCTIONLINE + 1)) $USERFILE | egrep -n ".*[a-zA-Z]+\s[a-zA-Z]+.*{.*" | tr -d '[:space:]' | awk -F: '{print $1}' )"
@@ -73,12 +66,11 @@ for current_function in $FUNCTIONS; do
         CURRENTLINE=$(( $CURRENTLINE - 1 ))
         TMP="$(sed "$CURRENTLINE q;d" $NEWFILENAME | grep 'return' )"
         if [ -n "$TMP" ]; then 
-                sed -i '' ''"$CURRENTLINE"' i\
-                '"$STACKVAR"'.RemoveFromStack();\
-                ' $NEWFILENAME;
+                sed -i "$CURRENTLINE"' i'"$STACKVAR"'.RemoveFromStack();' $NEWFILENAME;
         fi
     done
 done
-
-g++ $NEWFILENAME -lncurses -std=c++11 -o stack_tracker;
+echo ""
+echo "Compile Errors: "
+g++ $NEWFILENAME -lncurses -std=c++17 -o stack_tracker;
 rm $NEWFILENAME
